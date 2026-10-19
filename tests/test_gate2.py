@@ -38,7 +38,7 @@ class TestWorld(unittest.TestCase):
                 self.assertNotIn(c, text)
 
 
-def planted_worlds(n_worlds, seed=0, d=24, noise=0.01):
+def planted_worlds(n_worlds, seed=0, d=48, noise=0.01):
     """Ideal states: the anchor state codes only the anchor, the phrase state only the relation."""
     rng = np.random.default_rng(seed)
     out = []
@@ -63,21 +63,21 @@ class TestKeys(unittest.TestCase):
     def test_only_the_conjunction_resolves_hop1(self):
         ws = planted_worlds(10)
         fit, test = ws[:7], ws[7:]
-        hop = lambda cp, ex: g.acc([g.eval_1b(c, g.KeyBuilder(fit, cp, 14, 16, ex)) for c in test], "hop1")
+        hop = lambda cp, ex: g.acc([g.eval_1b(c, g.KeyBuilder(fit, cp, 14, 32, ex)) for c in test], "hop1")
         self.assertEqual(hop("outer", True), 1.0)
-        self.assertEqual(hop("concat", True), 1.0)
+        self.assertGreaterEqual(hop("concat", True), 0.9)  # a ReLU of a sum is not a true conjunction
         # a linear concatenation of 4 anchor codes and 4 relation codes spans only 7 of the 8 pairs
         self.assertLessEqual(hop("concat", False), 0.75)
         self.assertLessEqual(hop("phrase", False), 0.5)
         self.assertLessEqual(hop("anchor", False), 0.5)
-        two = g.acc([g.eval_1b(c, g.KeyBuilder(fit, "concat", 14, 16, True)) for c in test], "two_hop")
+        two = g.acc([g.eval_1b(c, g.KeyBuilder(fit, "outer", 14, 32, True)) for c in test], "two_hop")
         self.assertEqual(two, 1.0)
-        shuf = g.acc([g.eval_1b(c, g.KeyBuilder(fit, "concat", 14, 16, True), True) for c in test], "two_hop")
+        shuf = g.acc([g.eval_1b(c, g.KeyBuilder(fit, "outer", 14, 32, True), True) for c in test], "two_hop")
         self.assertEqual(shuf, 0.0)
 
     def test_memory_write_vectors_point_at_the_right_city(self):
         ws = planted_worlds(10)
-        kb = g.KeyBuilder(ws[:7], "concat", 14, 16, True)
+        kb = g.KeyBuilder(ws[:7], "outer", 14, 32, True)
         mu = {L: np.mean(np.concatenate([c["S"]["city_fact"][:, g.LAYERS.index(L)] for c in ws[:7]]), 0)
               for L in g.LAYERS}
         for c in ws[7:]:

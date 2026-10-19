@@ -1,5 +1,7 @@
 # RealTimeReadWriteClaude
 
+Part of monday madness - 8 repos mostly consolidated to Sihtibrain. 
+
 **Where should a live memory look? Find the address a frozen language model already computes.**
 
 [RealTimeReadWrite](https://github.com/anttiluode/RealTimeReadWrite) gave a frozen model a live delta-rule

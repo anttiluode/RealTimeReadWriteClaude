@@ -55,4 +55,5 @@ and a per-layer table. Everything goes into the JSON.
 |---|---|---|
 | 0 | Does a frozen LLM give "Anna's brother" and "Ben" the same address in context? | **FAIL** on Qwen2.5-0.5B: 41.4% at layer 14 (chance 12.5%, control 12.9%, need 80%). Real signal, not a usable key. [RESULT_GATE0.md](RESULT_GATE0.md) |
 | 0b | Post-result: does the model resolve the two-hop at all, at which position, in which subspace? | `gate0b_diagnostics.py`, tests in, **not run** |
+| S | Does a sparse nonlinear expansion fix Sol's Gate 2 address (82% → ?) | **PASS**: 100% new route, 99.6–100% retention; linear control stays at 82%. Equals the indexed table, does not beat it. [RESULT_SHARP.md](RESULT_SHARP.md) |
 | 1 | Does keying the live memory on that address recall facts by a new route after the context is gone? | to be pre-registered after Gate 0 |

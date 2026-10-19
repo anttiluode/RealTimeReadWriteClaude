@@ -1,0 +1,55 @@
+# RealTimeReadWriteClaude
+
+**Where should a live memory look? Find the address a frozen language model already computes.**
+
+[RealTimeReadWrite](https://github.com/anttiluode/RealTimeReadWrite) gave a frozen model a live delta-rule
+memory (`S ← αS + β(v − Sk)kᵀ`, store only the surprise). It failed on **addressing**, not on plasticity:
+the stored values were right (96% decodable), but a question's key matched the right fact no better than a
+distractor (cosine 0.321 vs 0.318). The memory knew *what* but not *where*.
+
+The Tolman–Eichenbaum Machine (Whittington et al., Cell 2020) says what an address must do: a structural
+code `g`, path-integrated over relations, separate from sensory content `x`, such that **arriving at the same
+place by a different route gives the same address**. Language models are known to bind entities to
+attributes through abstract binding-ID vectors (Feng & Steinhardt, ICLR 2024). So before building `g`, this
+repo asks whether the frozen model already has it.
+
+The sibling line, AIbrainV2 Gate 2 (Sol), tests TEM-style addressing in small graph worlds on CPU. This
+repo is the language half.
+
+## Gate 0 — same entity, two routes ([PREREG.md](PREREG.md), committed before any code)
+
+Context: 8 bindings such as `Anna's brother is Ben. Clara's boss is Dina. …` At every layer, read the
+hidden state at the last token of `…Now consider Ben` (direct) and `…Now consider Anna's brother`
+(relational). Does the relational state retrieve Ben among the 8 targets?
+
+* Layer chosen on 50 dev worlds; scored on 150 held-out test worlds (1,200 queries).
+* **PASS**: ≥ 80% centred top-1 accuracy at that layer (chance 12.5%) **and** ≤ 25% when the context
+  only lists the names, with no relation sentences.
+* Reported too: uncentred accuracy, and a 16-way test that asks whether "Anna's brother" sits closer to
+  Ben or to Anna.
+
+A pass gives a usable key **in context**. The memory gate proper (write, clear the KV cache, ask by the
+other route) is Gate 1, to be pre-registered after Gate 0's result.
+
+## Run
+
+This environment cannot reach HuggingFace, so the gate has not been run yet. On a machine that can:
+
+```bash
+pip install torch transformers numpy
+python -m unittest discover -s tests -v          # CPU, no download (miniature random Qwen2)
+python gate0_route_probe.py --model Qwen/Qwen2.5-0.5B --out results/gate0_qwen2.5-0.5b.json
+```
+
+About 8,000 short forward passes; a few minutes on a GPU. Reported, not gated:
+`--model Qwen/Qwen2.5-0.5B-Instruct` and `--model Qwen/Qwen2.5-1.5B`.
+
+The script prints the chosen layer, test accuracy with a 95% Wilson interval, the control, the decision,
+and a per-layer table. Everything goes into the JSON.
+
+## Status
+
+| Gate | Question | Status |
+|---|---|---|
+| 0 | Does a frozen LLM give "Anna's brother" and "Ben" the same address in context? | pre-registered, code + tests in, **not run** |
+| 1 | Does keying the live memory on that address recall facts by a new route after the context is gone? | to be pre-registered after Gate 0 |

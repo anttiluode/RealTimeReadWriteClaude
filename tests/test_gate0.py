@@ -96,5 +96,37 @@ class TestModelPath(unittest.TestCase):
                 self.assertTrue(0.0 <= a[k] <= 1.0)
 
 
+class TestDiagnostics(unittest.TestCase):
+    def test_ridge_recovers_a_planted_map(self):
+        import gate0b_diagnostics as d
+        rng = np.random.default_rng(3)
+        M = rng.normal(size=(16, 16))
+        worlds = []
+        for _ in range(12):
+            T = rng.normal(size=(8, 1, 16))
+            worlds.append({"T": T, "R": T @ np.linalg.inv(M) + 0.01 * rng.normal(size=T.shape)})
+        W = d.fit_ridge(worlds[:8], "R", "T", 0, 1e-4)
+        self.assertEqual(d.acc_mapped(worlds[8:], "R", "T", 0, W), 1.0)
+
+    def test_end_to_end_tiny(self):
+        try:
+            import torch
+            from transformers import Qwen2Config, Qwen2ForCausalLM
+        except ImportError as e:  # pragma: no cover
+            raise unittest.SkipTest(str(e))
+        import gate0b_diagnostics as d
+        torch.manual_seed(0)
+        cfg = Qwen2Config(vocab_size=600, hidden_size=32, intermediate_size=64, num_hidden_layers=2,
+                          num_attention_heads=4, num_key_value_heads=2, max_position_embeddings=1024)
+        model = Qwen2ForCausalLM(cfg).eval()
+        enc = lambda s: [3 + (ord(c) % 590) for c in s]
+        res = d.run(model, enc, lambda name: enc(name)[0], 0, "cpu", [0, 1], [2], [1000], batch=8,
+                    log=lambda *_: None)
+        self.assertTrue(res["post_result"])
+        self.assertEqual(len(res["by_layer"]), 3)
+        for k in ("top1_vocab", "way8", "nobind_way8"):
+            self.assertTrue(0 <= res["A_behaviour"][k] <= 1)
+
+
 if __name__ == "__main__":
     unittest.main()

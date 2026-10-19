@@ -13,6 +13,8 @@ place by a different route gives the same address**. Language models are known t
 attributes through abstract binding-ID vectors (Feng & Steinhardt, ICLR 2024). So before building `g`, this
 repo asks whether the frozen model already has it.
 
+Run the post-result diagnostics with `python gate0b_diagnostics.py --model Qwen/Qwen2.5-0.5B --out results/gate0b_qwen2.5-0.5b.json`.
+
 The sibling line, AIbrainV2 Gate 2 (Sol), tests TEM-style addressing in small graph worlds on CPU. This
 repo is the language half.
 
@@ -51,5 +53,6 @@ and a per-layer table. Everything goes into the JSON.
 
 | Gate | Question | Status |
 |---|---|---|
-| 0 | Does a frozen LLM give "Anna's brother" and "Ben" the same address in context? | pre-registered, code + tests in, **not run** |
+| 0 | Does a frozen LLM give "Anna's brother" and "Ben" the same address in context? | **FAIL** on Qwen2.5-0.5B: 41.4% at layer 14 (chance 12.5%, control 12.9%, need 80%). Real signal, not a usable key. [RESULT_GATE0.md](RESULT_GATE0.md) |
+| 0b | Post-result: does the model resolve the two-hop at all, at which position, in which subspace? | `gate0b_diagnostics.py`, tests in, **not run** |
 | 1 | Does keying the live memory on that address recall facts by a new route after the context is gone? | to be pre-registered after Gate 0 |

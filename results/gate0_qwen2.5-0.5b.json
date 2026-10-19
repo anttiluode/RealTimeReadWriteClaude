@@ -575,7 +575,7 @@
    "n": 1200
   }
  ],
- "seconds": 79.3107545375824,
+ "seconds": 79.43046283721924,
  "model": "Qwen/Qwen2.5-0.5B",
  "dtype": "float32",
  "device": "cuda",

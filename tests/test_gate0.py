@@ -108,6 +108,14 @@ class TestDiagnostics(unittest.TestCase):
         W = d.fit_ridge(worlds[:8], "R", "T", 0, 1e-4)
         self.assertEqual(d.acc_mapped(worlds[8:], "R", "T", 0, W), 1.0)
 
+    def test_ridge_survives_identical_queries(self):
+        import gate0b_diagnostics as d
+        rng = np.random.default_rng(4)
+        worlds = [{"T": rng.normal(size=(8, 1, 16)), "R": np.ones((8, 1, 16))} for _ in range(4)]
+        W = d.fit_ridge(worlds, "R", "T", 0, 1.0)  # centred queries are all zero
+        self.assertTrue(np.all(np.isfinite(W)))
+        self.assertLessEqual(d.acc_mapped(worlds, "R", "T", 0, W), 1.0)
+
     def test_end_to_end_tiny(self):
         try:
             import torch

@@ -94,9 +94,10 @@ def acc_cosine(worlds, qkey, tkey, l):
 def fit_ridge(worlds, qkey, tkey, l, lam):
     X = np.concatenate([centred(w, qkey, tkey, l)[1] for w in worlds])
     Y = np.concatenate([centred(w, qkey, tkey, l)[0] for w in worlds])
-    scale = float((X ** 2).sum(axis=1).mean())
+    # Floor the scale: at layer 0 queries ending on the same token centre to exactly zero.
+    scale = max(float((X ** 2).sum(axis=1).mean()), 1e-12)
     d = X.shape[1]
-    return np.linalg.solve(X.T @ X + lam * scale * np.eye(d), X.T @ Y)
+    return np.linalg.solve(X.T @ X + (lam * scale + 1e-8) * np.eye(d), X.T @ Y)
 
 
 def acc_mapped(worlds, qkey, tkey, l, W):
